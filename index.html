@@ -130,12 +130,20 @@
                     cubes.splice(i, 1);
                     i--;
                 }
+                 // キューブが0個になったら再スタート
+                if (cubes.length === 0) {
+                    const newCube = new THREE.Mesh(geometry, material);
+                    addEdges(newCube);
+                    newCube.position.set(0, 0, 0);
+                    scene.add(newCube);
+                    cubes.push(newCube);
+                }
             }
         }
 
         function shouldReproduce(cube) {
             // 増殖条件を定義
-            const reproductionProbability = 0.055;
+            const reproductionProbability = 0.045;
             return Math.random() < reproductionProbability;
         }
 
@@ -152,8 +160,8 @@
             const reproduceSound = document.getElementById('reproduce-sound');
             reproduceSound.currentTime = 0;
 
-            // 音量をランダムに設定（0.1から1の範囲）
-            const volume = 0.01 + Math.random() * 0.6;
+            // 音量をランダムに設定
+            const volume = 0.01 + Math.random() * 0.5;
             reproduceSound.volume = volume;
 
             reproduceSound.play();
@@ -163,7 +171,7 @@
 
         function shouldDie(cube) {
             // 減少条件を定義
-            let deathProbability = 0.04;
+            let deathProbability = 0.042;
 
             // 立方体の数が300個以上の場合、減少確率を増やす
             if (cubes.length >= 50) {
