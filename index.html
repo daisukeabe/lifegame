@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>立方体の増殖と減少</title>
+    <style>
+        #simulationCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"></script>
+</head>
+
+<body>
+    <canvas id="simulationCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('simulationCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(30, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+
+        let rot = 0; // 角度
+        let mouseX = 0; // マウス座標
+
+        // マウス座標はマウスが動いた時のみ取得できる
+        document.addEventListener("mousemove", (event) => {
+            mouseX = event.pageX;
+        });
+
+        tick();
+
+        // 毎フレーム時に実行されるループイベントです
+        function tick() {
+            // マウスの位置に応じて角度を設定
+            // マウスのX座標がステージの幅の何%の位置にあるか調べてそれを360度で乗算する
+            const targetRot = (mouseX / window.innerWidth) * 360;
+            // イージングの公式を用いて滑らかにする
+            // 値 += (目標値 - 現在の値) * 減速値
+            rot += (targetRot - rot) * 0.02;
+
+            // ラジアンに変換する
+            const radian = rot * Math.PI / 180;
+            // 角度に応じてカメラの位置を設定
+            camera.position.x = 10 * Math.sin(radian);
+            camera.position.y = 5 * Math.cos(radian);
+            camera.position.z = 10 * Math.cos(radian);
+            // 原点方向を見つめる
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+            // レンダリング
+            renderer.render(scene, camera);
+
+            requestAnimationFrame(tick);
+        }
+
+        // マウスの位置に応じて角度を設定
+        // マウスのX座標がステージの幅の何%の位置にあるか調べてそれを360度で乗算する
+        const targetRot = (mouseX / window.innerWidth) * 360;
+
+        function onMouseMove(x, y) {
+            const mouseX = x - (window.innerWidth / 2); // 原点を中心に持ってくる
+            const mouseY = -y + (window.innerHeight / 2); // 軸を反転して原点を中心に持ってくる
+
+            // ライトのxy座標をマウス位置にする
+            pointLight.position.x = mouseX;
+            pointLight.position.y = mouseY;
+        }
+
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+        // 背景色と地平線のグリッドを設定
+        scene.background = new THREE.Color(0x000000);
+
+        // 立方体を作成
+        const geometry = new THREE.BoxGeometry(0.5, 0.2, 0.5);
+        const material = new THREE.MeshNormalMaterial({ color: 0xf4d989, wireframe: true });
+        const cube = new THREE.Mesh(geometry, material);
+        addEdges(cube);
+        scene.add(cube);
+
+
+        function addEdges(cube) {
+            const edges = new THREE.EdgesGeometry(cube.geometry);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+            const wireframe = new THREE.LineSegments(edges, lineMaterial);
+            cube.add(wireframe);
+        }
+
+        // シーンに立方体を追加
+        scene.add(cube);
+
+        let cubes = [cube];
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 増殖と減少のロジックを実装
+            updateCubes();
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // ウィンドウサイズ変更時のイベントリスナー
+        window.addEventListener('resize', onWindowResize, false);
+
+        function onWindowResize() {
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        }
+
+        function updateCubes() {
+            for (let i = 0; i < cubes.length; i++) {
+                const cube = cubes[i];
+
+                // 増殖のロジック
+                if (shouldReproduce(cube)) {
+                    const newCube = reproduce(cube);
+                    scene.add(newCube);
+                    cubes.push(newCube);
+                }
+
+                // 減少のロジック
+                if (shouldDie(cube)) {
+                    scene.remove(cube);
+                    cubes.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        function shouldReproduce(cube) {
+            // 増殖条件を定義
+            const reproductionProbability = 0.06;
+            return Math.random() < reproductionProbability;
+        }
+
+        function reproduce(cube) {
+            // 新しい立方体を作成し、位置を親の近くに設定
+            const newCube = new THREE.Mesh(geometry, material);
+            addEdges(newCube);
+            newCube.position.copy(cube.position);
+            newCube.position.x += (Math.random() - 0.7) * 0.7;
+            newCube.position.y += (Math.random() - 0.6) * 0.6;
+            newCube.position.z += (Math.random() - 0.7) * 0.7;
+            return newCube;
+        }
+
+        function shouldDie(cube) {
+            // 減少条件を定義
+            let deathProbability = 0.05;
+
+            // 立方体の数が1000個以上の場合、減少確率を増やす
+            if (cubes.length >= 300) {
+                deathProbability *= 2; // 減少確率を2倍にする
+            }
+
+            return Math.random() < deathProbability;
+        }
+
+    </script>
+</body>
+
+</html>
