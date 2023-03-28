@@ -24,6 +24,7 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"></script>
+    <audio id="reproduce-sound" src="assets/tick.wav" preload="auto"></audio>
 </head>
 
 <body>
@@ -74,7 +75,7 @@
         scene.background = new THREE.Color(0x000000);
 
         // 立方体を作成
-        const geometry = new THREE.BoxGeometry(0.5, 0.2, 0.5);
+        const geometry = new THREE.BoxGeometry(0.5, 0.25, 0.5);
         const material = new THREE.MeshNormalMaterial({ color: 0xf4d989, wireframe: true });
         const cube = new THREE.Mesh(geometry, material);
         addEdges(cube);
@@ -134,7 +135,7 @@
 
         function shouldReproduce(cube) {
             // 増殖条件を定義
-            const reproductionProbability = 0.075;
+            const reproductionProbability = 0.055;
             return Math.random() < reproductionProbability;
         }
 
@@ -144,8 +145,19 @@
             addEdges(newCube);
             newCube.position.copy(cube.position);
             newCube.position.x += (Math.random() - 0.6) * 0.7;
-            newCube.position.y += (Math.random() - 0.5) * 0.6;
+            newCube.position.y += (Math.random() - 0.6) * 0.5;
             newCube.position.z += (Math.random() - 0.6) * 0.7;
+
+            // サウンドを再生
+            const reproduceSound = document.getElementById('reproduce-sound');
+            reproduceSound.currentTime = 0;
+
+            // 音量をランダムに設定（0.1から1の範囲）
+            const volume = 0.01 + Math.random() * 0.7;
+            reproduceSound.volume = volume;
+
+            reproduceSound.play();
+
             return newCube;
         }
 
@@ -154,7 +166,7 @@
             let deathProbability = 0.04;
 
             // 立方体の数が300個以上の場合、減少確率を増やす
-            if (cubes.length >= 300) {
+            if (cubes.length >= 50) {
                 deathProbability *= 2; // 減少確率を2倍にする
             }
 
