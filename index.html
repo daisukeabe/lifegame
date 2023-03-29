@@ -80,8 +80,8 @@
         scene.background = new THREE.Color(0x000000);
 
         // 立方体を作成
-        //const geometry = new THREE.BoxGeometry( 1, 0.5, 1 );
-        const geometry = new THREE.TorusGeometry( 12, 3, 36, 50 );
+        const geometry = new THREE.BoxGeometry( 1, 0.5, 1 );
+        //const geometry = new THREE.TorusGeometry( 12, 3, 36, 50 );
         const material = new THREE.MeshNormalMaterial({ color: 0xf4d989, wireframe: true });
         const cube = new THREE.Mesh(geometry, material);
         addEdges(cube);
